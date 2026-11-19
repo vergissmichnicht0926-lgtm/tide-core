@@ -106,7 +106,12 @@ npm --prefix gateway test        # 272 pass / 2 skip
 - `tide-desktop`：Windows 客户端（Avalonia / .NET 8）
 - `tide-android`：Android 客户端（Java，零第三方依赖）
 
-（仓库地址在发布后补到本段。）
+仓库：
+
+- https://github.com/vergissmichnicht0926-lgtm/tide-core
+- https://github.com/vergissmichnicht0926-lgtm/tide-desktop
+- https://github.com/vergissmichnicht0926-lgtm/tide-android
+
 
 ## 许可证
 
