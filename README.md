@@ -28,12 +28,17 @@ plugins/                 DSH 插件（工具白名单）
 tools/                   运维脚本（探活、备份校验、开发期探针）
 ```
 
-## 运行前提
+## 前置要求
 
-- **Node.js 22 或以上**（用到 `node:sqlite`、`--env-file`）
-- **一个可用的 DSH 宿主**：本项目不内置模型，AI 能力由 DSH 提供。
-  网关通过 `TIDE_DSH_BASE_URL` 连它，并读写 `DSH_HOME`。
-  没有 DSH 时网关能启动、能建库，但发出去的消息不会有回复。
+- **Node.js ≥ 22.5**：启动脚本用 `node --env-file` 读配置；`node:sqlite` 也是从 22.5 才进标准库。
+- **SQLite 不需要另外安装**：直接用 Node 内置的 `node:sqlite`（`DatabaseSync`），
+  不依赖 `better-sqlite3` 之类的原生模块，也不用在系统里装 sqlite。
+- **AI 回复依赖 DeepSeek Harness（DSH）宿主**：本项目不内置模型，AI 能力由 DSH 提供。
+  网关在 `http://127.0.0.1:3081` 找 DSH（地址可用 `TIDE_DSH_BASE_URL` 改），并读写 `DSH_HOME`。
+  没有 DSH 时网关仍能启动、能收发消息、能登录管理台，但**不会有 AI 回复**。
+- **两个必需密钥**：`TIDE_JWT_SECRET`、`TIDE_AGENT_SECRET`。
+  两个变量的用途写在 [`gateway/.env.example`](gateway/.env.example) 的注释里，
+  生成命令见下节「快速开始」第 2 步。
 
 ## 快速开始
 
@@ -115,4 +120,7 @@ npm --prefix gateway test        # 272 pass / 2 skip
 
 ## 许可证
 
-MIT，© 2026 树云铃。全文见 [LICENSE](LICENSE)。
+本项目以 MIT 许可证发布，版权归 树云铃（© 2026）。
+
+允许商用、修改、再分发（含二进制形式），只需保留版权声明和许可证全文。
+完整条款见 [`LICENSE`](LICENSE)。
