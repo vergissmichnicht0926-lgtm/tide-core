@@ -1,0 +1,342 @@
+[
+  {
+    "name": "chat_get_recent",
+    "summary": "读取这个对话最近的消息。",
+    "params": [
+      {
+        "name": "token",
+        "required": true,
+        "type": "string"
+      },
+      {
+        "name": "limit",
+        "required": false,
+        "type": "number"
+      },
+      {
+        "name": "afterSeq",
+        "required": false,
+        "type": "number"
+      }
+    ]
+  },
+  {
+    "name": "chat_send",
+    "summary": "把消息发出去。",
+    "params": [
+      {
+        "name": "token",
+        "required": true,
+        "type": "string"
+      },
+      {
+        "name": "messages",
+        "required": false,
+        "type": "array"
+      },
+      {
+        "name": "segments",
+        "required": false,
+        "type": "array"
+      },
+      {
+        "name": "replyToMessageId",
+        "required": false,
+        "type": "string"
+      },
+      {
+        "name": "clientBatchId",
+        "required": false,
+        "type": "string"
+      }
+    ]
+  },
+  {
+    "name": "chat_send_voice",
+    "summary": "发送一条语音消息。",
+    "params": [
+      {
+        "name": "token",
+        "required": true,
+        "type": "string"
+      },
+      {
+        "name": "text",
+        "required": true,
+        "type": "string"
+      },
+      {
+        "name": "audioBase64",
+        "required": true,
+        "type": "string"
+      },
+      {
+        "name": "mimeType",
+        "required": true,
+        "type": "string"
+      },
+      {
+        "name": "conversationId",
+        "required": false,
+        "type": "string"
+      },
+      {
+        "name": "replyToMessageId",
+        "required": false,
+        "type": "string"
+      },
+      {
+        "name": "clientBatchId",
+        "required": false,
+        "type": "string"
+      }
+    ]
+  },
+  {
+    "name": "chat_send_sticker",
+    "summary": "发送一张表情包。",
+    "params": [
+      {
+        "name": "token",
+        "required": true,
+        "type": "string"
+      },
+      {
+        "name": "stickerId",
+        "required": false,
+        "type": "string"
+      },
+      {
+        "name": "name",
+        "required": false,
+        "type": "string"
+      },
+      {
+        "name": "replyToMessageId",
+        "required": false,
+        "type": "string"
+      },
+      {
+        "name": "clientBatchId",
+        "required": false,
+        "type": "string"
+      }
+    ]
+  },
+  {
+    "name": "chat_wait",
+    "summary": "等消息。",
+    "params": [
+      {
+        "name": "token",
+        "required": true,
+        "type": "string"
+      },
+      {
+        "name": "quietMs",
+        "required": false,
+        "type": "number"
+      },
+      {
+        "name": "timeoutMs",
+        "required": false,
+        "type": "number"
+      },
+      {
+        "name": "purpose",
+        "required": false,
+        "type": "string"
+      }
+    ]
+  },
+  {
+    "name": "chat_mark_read",
+    "summary": "把\"已读到\"的水位推进到 throughSeq。",
+    "params": [
+      {
+        "name": "token",
+        "required": true,
+        "type": "string"
+      },
+      {
+        "name": "throughSeq",
+        "required": true,
+        "type": "number"
+      }
+    ]
+  },
+  {
+    "name": "chat_set_wake_config",
+    "summary": "设置群聊的唤醒条件。",
+    "params": [
+      {
+        "name": "token",
+        "required": true,
+        "type": "string"
+      },
+      {
+        "name": "config",
+        "required": true,
+        "type": "object"
+      },
+      {
+        "name": "throughSeq",
+        "required": false,
+        "type": "number"
+      }
+    ]
+  },
+  {
+    "name": "chat_memory_append",
+    "summary": "往长期记忆里记一条。",
+    "params": [
+      {
+        "name": "token",
+        "required": true,
+        "type": "string"
+      },
+      {
+        "name": "kind",
+        "required": true,
+        "type": "string"
+      },
+      {
+        "name": "text",
+        "required": true,
+        "type": "string"
+      }
+    ]
+  },
+  {
+    "name": "chat_memory_query",
+    "summary": "按种类查长期记忆。",
+    "params": [
+      {
+        "name": "token",
+        "required": true,
+        "type": "string"
+      },
+      {
+        "name": "kind",
+        "required": false,
+        "type": "string"
+      },
+      {
+        "name": "limit",
+        "required": false,
+        "type": "number"
+      }
+    ]
+  },
+  {
+    "name": "chat_memory_remove",
+    "summary": "删一条长期记忆。",
+    "params": [
+      {
+        "name": "token",
+        "required": true,
+        "type": "string"
+      },
+      {
+        "name": "id",
+        "required": true,
+        "type": "number"
+      },
+      {
+        "name": "confirm",
+        "required": true,
+        "type": "boolean"
+      }
+    ]
+  },
+  {
+    "name": "chat_get_prompt",
+    "summary": "拿当前会话状态：私聊/群聊、未读计数、已读水位、wake_config 摘要、沉睡前观察状态。",
+    "params": [
+      {
+        "name": "token",
+        "required": true,
+        "type": "string"
+      }
+    ]
+  },
+  {
+    "name": "chat_get_profile",
+    "summary": "读取汐语自己的公开资料：名字、个签、是否已设置头像。",
+    "params": [
+      {
+        "name": "token",
+        "required": true,
+        "type": "string"
+      }
+    ]
+  },
+  {
+    "name": "chat_set_profile",
+    "summary": "修改汐语自己的公开资料。",
+    "params": [
+      {
+        "name": "token",
+        "required": true,
+        "type": "string"
+      },
+      {
+        "name": "name",
+        "required": false,
+        "type": "string"
+      },
+      {
+        "name": "signature",
+        "required": false,
+        "type": "string"
+      },
+      {
+        "name": "avatar",
+        "required": false,
+        "type": "string"
+      }
+    ]
+  },
+  {
+    "name": "chat_read_attachment",
+    "summary": "读取一个附件的内容。",
+    "params": [
+      {
+        "name": "token",
+        "required": true,
+        "type": "string"
+      },
+      {
+        "name": "attachmentId",
+        "required": true,
+        "type": "string"
+      },
+      {
+        "name": "offset",
+        "required": false,
+        "type": "number"
+      },
+      {
+        "name": "limit",
+        "required": false,
+        "type": "number"
+      }
+    ]
+  },
+  {
+    "name": "chat_publish_moment",
+    "summary": "发布一条动态（类似朋友圈），会出现在已经添加你的用户的时间线里。",
+    "params": [
+      {
+        "name": "token",
+        "required": true,
+        "type": "string"
+      },
+      {
+        "name": "text",
+        "required": true,
+        "type": "string"
+      }
+    ]
+  }
+]

@@ -1,0 +1,523 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>汐语管理台</title>
+  <link rel="stylesheet" href="admin.css">
+  <script type="module" src="admin.js"></script>
+</head>
+<body>
+  <div id="login-view" class="login-wrap">
+    <form id="login-form" class="login-card">
+      <div class="brand"><span class="brand-dot"></span>汐语管理台</div>
+      <label class="field">
+        <span>账号</span>
+        <input id="login-username" name="username" type="text" autocomplete="username" required>
+      </label>
+      <label class="field">
+        <span>密码</span>
+        <input id="login-password" name="password" type="password" autocomplete="current-password" required>
+      </label>
+      <p id="login-error" class="error" hidden></p>
+      <button id="login-submit" class="primary block" type="submit">登录</button>
+      <p class="hint">仅管理员账号可登录；连续 5 次失败会锁 15 分钟。</p>
+    </form>
+  </div>
+
+  <div id="app-view" class="shell" hidden>
+    <aside class="sidebar">
+      <div class="side-brand"><span class="brand-dot"></span><strong>汐语</strong><span class="side-tag">管理台</span></div>
+      <nav class="side-nav">
+        <div class="nav-group">
+          <span class="nav-title">工作空间</span>
+          <a class="nav-item" data-route="overview" href="#/overview">总览</a>
+          <a class="nav-item" data-route="sessions" href="#/sessions">会话</a>
+        </div>
+        <div class="nav-group">
+          <span class="nav-title">智能体</span>
+          <a class="nav-item" data-route="simulation" href="#/simulation">仿真</a>
+          <a class="nav-item" data-route="persona" href="#/persona">人格</a>
+        </div>
+        <div class="nav-group">
+          <span class="nav-title">安全与系统</span>
+          <a class="nav-item" data-route="invites" href="#/invites">邀请与设备</a>
+          <a class="nav-item" data-route="usage" href="#/usage">用量</a>
+          <a class="nav-item" data-route="security" href="#/security">访问与安全</a>
+          <a class="nav-item" data-route="tools" href="#/tools">工具参考</a>
+        </div>
+      </nav>
+      <div class="side-foot">
+        <span id="side-version" class="muted">—</span>
+        <button id="logout" class="ghost small" type="button">退出</button>
+      </div>
+    </aside>
+
+    <main class="content">
+      <header class="page-head">
+        <div>
+          <h1 id="page-title">总览</h1>
+          <p id="page-sub" class="muted"></p>
+        </div>
+        <span id="top-dot" class="dot unknown" title="公网状态"></span>
+      </header>
+
+      <section id="view-overview" class="view">
+        <div id="silence-banner" class="notice warn silence-banner" hidden>
+          <span id="silence-banner-text">静默中</span>
+          <button class="ghost small" type="button" data-goto="persona">调整静默</button>
+        </div>
+        <div class="metric-strip">
+          <div class="metric"><span>运行模式</span><strong id="metric-mode">—</strong><small id="metric-mode-note">实时链路</small></div>
+          <div class="metric"><span>实时连接</span><strong id="metric-connections">—</strong><small>用户级单流</small></div>
+          <button class="metric metric-link" type="button" data-goto="sessions">
+            <span>会话数</span><strong id="metric-conversations">—</strong><small>点击查看会话</small>
+          </button>
+          <button class="metric metric-link" type="button" data-goto="sessions">
+            <span>今日消息</span><strong id="metric-today">—</strong><small>点击查看会话</small>
+          </button>
+        </div>
+
+        <div class="card realtime-line" id="realtime-line">
+          <span>模式 <b id="rt-mode">—</b></span>
+          <span>实时连接 <b id="rt-connections">—</b></span>
+          <span>回放跳过 <b id="rt-replay">—</b></span>
+          <span>epoch 变更 <b id="rt-epoch">—</b></span>
+          <span>游标超前提 <b id="rt-cursor">—</b></span>
+        </div>
+
+        <div class="card ops-card" id="ops-card">
+          <div class="ops-head"><h2>运维</h2><span id="ops-error" class="note" hidden>读取失败</span></div>
+          <div class="ops-lights">
+            <div class="ops-light">
+              <span id="ops-probe-dot" class="dot unknown"></span>
+              <div><b>探活</b><small id="ops-probe-text">—</small></div>
+            </div>
+            <div class="ops-light">
+              <span id="ops-backup-dot" class="dot unknown"></span>
+              <div><b>备份</b><small id="ops-backup-text">—</small></div>
+            </div>
+            <div class="ops-light">
+              <span id="ops-gateway-dot" class="dot unknown"></span>
+              <div><b>网关</b><small id="ops-gateway-text">—</small></div>
+            </div>
+          </div>
+          <div class="ops-detail" id="ops-detail">—</div>
+        </div>
+
+        <div class="section-head"><h2>最近事件</h2><span class="muted">最近 20 条</span></div>
+        <p id="overview-error" class="error" hidden>读取失败，点击重试</p>
+        <div class="card table-card">
+          <table class="table">
+            <thead><tr><th>时间</th><th>类型</th><th>摘要</th></tr></thead>
+            <tbody id="events"></tbody>
+          </table>
+          <div id="overview-empty" class="empty" hidden>暂无事件</div>
+        </div>
+      </section>
+
+      <section id="view-sessions" class="view" hidden>
+        <div class="toolbar">
+          <input id="session-search" class="input" type="search" placeholder="按标题搜索" autocomplete="off">
+          <select id="session-type" class="select">
+            <option value="all">全部类型</option>
+            <option value="direct">私聊</option>
+            <option value="group">群聊</option>
+          </select>
+          <span id="session-count" class="muted"></span>
+        </div>
+        <div class="card table-card">
+          <table class="table">
+            <thead>
+              <tr><th>标题</th><th>类型</th><th>成员</th><th>最近活动</th><th>操作</th></tr>
+            </thead>
+            <tbody id="sessions"></tbody>
+          </table>
+          <div id="sessions-empty" class="empty" hidden>没有匹配的会话</div>
+        </div>
+        <div class="pager">
+          <button id="session-prev" class="ghost small" type="button">上一页</button>
+          <span id="session-page" class="muted">第 1 / 1 页</span>
+          <button id="session-next" class="ghost small" type="button">下一页</button>
+        </div>
+      </section>
+
+      <section id="view-simulation" class="view" hidden>
+        <h2 class="section-h2">仿真</h2>
+        <p class="page-note">这里的配置只影响新会话；已存在的会话沿用创建时的默认值。</p>
+
+        <details class="group">
+          <summary><span class="group-name">运行状态</span><span class="group-meta">只读</span></summary>
+          <div class="group-body">
+            <div class="group-row"><span>模式</span><b id="sim-mode">—</b><small>由 TIDE_REALTIME 决定</small></div>
+            <div class="group-row"><span>实时连接</span><b id="sim-connections">—</b><small>用户级单流</small></div>
+            <div class="group-row"><span>版本</span><b id="sim-version">—</b><small>网关版本</small></div>
+          </div>
+        </details>
+
+        <details class="group">
+          <summary><span class="group-name">分条发送</span><span class="group-meta">毫秒</span></summary>
+          <div class="group-body">
+            <div class="group-row">
+              <span>批量窗口（秒）</span>
+              <input id="wake-batch" type="number" min="1" max="60" step="1">
+              <small>1–60 秒；决定群消息合批的等待时间</small>
+            </div>
+            <div class="group-row">
+              <span>气泡间隔（毫秒）</span>
+              <input id="bubble-delay" type="number" min="0" max="3000" step="100">
+              <small>0 关闭；默认 1200，多段发送时每条间隔 ±300ms 抖动</small>
+            </div>
+            <div class="form-actions">
+              <button id="bubble-save" class="ghost small" type="button">保存气泡间隔</button>
+              <span id="bubble-status" class="note">只影响 segments / --- 分段发送</span>
+            </div>
+          </div>
+        </details>
+
+        <details class="group">
+          <summary><span class="group-name">工具开关</span><span class="group-meta">只读 · 13 个</span></summary>
+          <div class="group-body">
+            <table class="group-table">
+              <thead><tr><th>工具</th><th>说明</th></tr></thead>
+              <tbody id="sim-tools"></tbody>
+            </table>
+          </div>
+        </details>
+
+        <details class="group">
+          <summary><span class="group-name">唤醒推荐值（仅参考，AI 可不遵守）</span><span class="group-meta">AI 可不遵守</span></summary>
+          <div class="group-body">
+            <div class="group-row">
+              <span>默认模式</span>
+              <select id="wake-mode">
+                <option value="diving">潜水</option>
+                <option value="active">活跃</option>
+              </select>
+              <small>新会话沿用这个默认值</small>
+            </div>
+            <div class="switch-grid">
+              <label class="switch-row">
+                <span class="switch"><input id="wake-at" type="checkbox"><i></i></span>
+                <span><b>@ 提及</b><small>@ 到汐语就算被叫</small></span>
+              </label>
+              <label class="switch-row">
+                <span class="switch"><input id="wake-name" type="checkbox"><i></i></span>
+                <span><b>名字</b><small>正文里出现昵称也算</small></span>
+              </label>
+              <label class="switch-row">
+                <span class="switch"><input id="wake-question" type="checkbox"><i></i></span>
+                <span><b>提问</b><small>「你……吗 / 怎么」这类直接问句</small></span>
+              </label>
+              <label class="switch-row">
+                <span class="switch"><input id="wake-poke" type="checkbox"><i></i></span>
+                <span><b>拍一拍</b><small>被拍时醒来</small></span>
+              </label>
+              <label class="switch-row">
+                <span class="switch"><input id="wake-any" type="checkbox"><i></i></span>
+                <span><b>任意消息</b><small>每条群消息都看（会明显变吵）</small></span>
+              </label>
+            </div>
+            <div class="group-row">
+              <span>关键词</span>
+              <input id="wake-keywords" placeholder="汐语, 小汐, Tide">
+              <small>逗号分隔，最多 20 个</small>
+            </div>
+            <div class="group-row">
+              <span>概率 <b id="wake-prob-value">5%</b></span>
+              <input id="wake-prob" type="range" min="0" max="1" step="0.01">
+              <small>被叫醒后仍由 AI 判断要不要接话</small>
+            </div>
+            <div class="group-row">
+              <span>管理员建议</span>
+              <textarea id="wake-hint" maxlength="200" rows="2" placeholder="写给 AI 的建议，可留空"></textarea>
+              <small>作为建议交给 AI，AI 可以不遵守；最多 200 字</small>
+            </div>
+            <p id="wake-note" class="note warn-note" hidden>至少保留一个触发条件，否则会变成永眠，网关会拒绝。</p>
+          </div>
+        </details>
+
+        <details class="group">
+          <summary><span class="group-name">唤醒硬限制（新会话默认）</span><span class="group-meta">只影响新建会话</span></summary>
+          <div class="group-body">
+            <p class="note">只决定之后新建的会话；已存在的会话各自保存自己的值，改这里不会追溯。</p>
+            <div class="group-row"><span>每分钟唤醒</span><input id="wake-limit-minute" type="number" min="1" max="60" step="1"><small>1–60 次/分</small></div>
+            <div class="group-row"><span>每小时唤醒</span><input id="wake-limit-hour" type="number" min="1" max="240" step="1"><small>1–240 次/时</small></div>
+            <div class="group-row"><span>沉睡前观察（秒）</span><input id="wake-limit-presleep" type="number" min="60" max="1800" step="1"><small>60–1800 秒</small></div>
+            <div class="group-row"><span>连续无行动重置</span><input id="wake-limit-noaction" type="number" min="1" max="20" step="1"><small>1–20 轮</small></div>
+            <div class="group-row"><span>唤醒配置提醒</span><input id="wake-limit-reminders" type="number" min="0" max="10" step="1"><small>0–10 次</small></div>
+          </div>
+        </details>
+
+        <details class="group">
+          <summary><span class="group-name">发送限制</span><span class="group-meta">硬编码，只读</span></summary>
+          <div class="group-body">
+            <div class="group-row"><span>每分钟</span><b>8 条</b></div>
+            <div class="group-row"><span>每小时</span><b>60 条</b></div>
+          </div>
+        </details>
+
+        <details class="group">
+          <summary><span class="group-name">唤醒状态</span><span class="group-meta">只读</span></summary>
+          <div class="group-body">
+            <div class="group-row"><span>当前默认模式</span><b id="sim-current-mode">—</b></div>
+            <div class="group-row"><span>生效范围</span><b>新会话</b></div>
+          </div>
+        </details>
+
+        <div id="sim-savebar" class="save-bar" hidden>
+          <span data-status>有未保存的修改</span>
+          <div class="save-actions">
+            <button id="sim-discard" class="ghost small" type="button">放弃</button>
+            <button id="sim-save" class="primary small" type="button">保存</button>
+          </div>
+        </div>
+      </section>
+
+      <section id="view-persona" class="view" hidden>
+        <div class="card form-card silence-card">
+          <div class="card-head">
+            <h2>静默</h2>
+            <span id="silence-state" class="muted">—</span>
+          </div>
+          <div class="silence-controls">
+            <label class="switch-row">
+              <span class="switch"><input id="silence-toggle" type="checkbox"><i></i></span>
+              <span><b>全局静默</b><small>只拦主动唤醒与回复检查，不影响已经发出的显式消息</small></span>
+            </label>
+            <div class="silence-presets">
+              <button class="ghost small" type="button" data-silence-minutes="30">30 分钟</button>
+              <button class="ghost small" type="button" data-silence-minutes="60">1 小时</button>
+              <button class="ghost small" type="button" data-silence-minutes="480">8 小时</button>
+              <button class="ghost small" type="button" data-silence-tomorrow="1">到明早 8 点</button>
+              <button id="silence-off" class="ghost small" type="button">解除</button>
+            </div>
+          </div>
+          <p id="silence-remaining" class="note">当前未静默</p>
+        </div>
+
+        <form id="persona-form" class="card form-card">
+          <div class="form-grid">
+            <label class="field"><span>昵称（1~40 字）</span>
+              <input id="persona-name" maxlength="40" autocomplete="off">
+            </label>
+            <label class="field"><span>签名（最多 200 字）</span>
+              <input id="persona-signature" maxlength="200" autocomplete="off">
+            </label>
+          </div>
+          <label class="field"><span>提示词（最多 4000 字）</span>
+            <textarea id="persona-prompt" maxlength="4000" rows="7"></textarea>
+          </label>
+          <div class="avatar-row">
+            <img id="persona-avatar" class="avatar" alt="头像预览" hidden>
+            <div class="avatar-actions">
+              <label class="ghost small file-btn">选择头像
+                <input id="persona-file" type="file" accept="image/png,image/jpeg,image/webp" hidden>
+              </label>
+              <button id="persona-avatar-clear" class="ghost small" type="button">移除头像</button>
+              <span class="note">PNG / JPEG / WebP，自动压到 256px</span>
+            </div>
+          </div>
+        </form>
+
+        <div id="persona-savebar" class="save-bar" hidden>
+          <span data-status>有未保存的修改</span>
+          <div class="save-actions">
+            <button id="persona-discard" class="ghost small" type="button">放弃</button>
+            <button id="persona-save" class="primary small" type="button">保存</button>
+          </div>
+        </div>
+      </section>
+
+      <section id="view-invites" class="view" hidden>
+        <div class="card form-card">
+          <div class="card-head"><h2>用户配额</h2><span class="muted">影响所有用户</span></div>
+          <div class="form-grid">
+            <label class="field"><span>每日消息数（1~100000）</span>
+              <input id="limit-daily" type="number" min="1" max="100000">
+            </label>
+            <label class="field"><span>最多会话数（1~1000）</span>
+              <input id="limit-convos" type="number" min="1" max="1000">
+            </label>
+            <label class="field"><span>单文件 MB（1~1024）</span>
+              <input id="limit-upload" type="number" min="1" max="1024">
+            </label>
+          </div>
+          <div class="form-actions">
+            <button id="quota-save" class="primary small" type="button">保存配额</button>
+            <span id="quota-status" class="note">保存后影响下一次上传 / 建会话 / 发消息</span>
+          </div>
+        </div>
+
+        <div class="section-head"><h2>用户</h2><span id="user-count" class="muted"></span></div>
+        <div class="card table-card">
+          <table class="table">
+            <thead><tr><th>账号</th><th>角色</th><th>会话</th><th>最近活跃</th><th>操作</th></tr></thead>
+            <tbody id="users"></tbody>
+          </table>
+        </div>
+
+        <div class="section-head">
+          <h2>邀请码 <span id="invite-count" class="muted"></span></h2>
+          <button id="invite-new" class="primary small" type="button">新建邀请码</button>
+        </div>
+        <form id="invite-form" class="card form-card" hidden>
+          <div class="form-grid">
+            <label class="field"><span>类型</span>
+              <select id="invite-kind">
+                <option value="bot">Bot 邀请</option>
+                <option value="group">群邀请</option>
+              </select>
+            </label>
+            <label class="field" id="invite-group-field" hidden><span>群</span>
+              <select id="invite-group"></select>
+            </label>
+            <label class="field"><span>有效期</span>
+              <select id="invite-expires">
+                <option value="60">1 小时</option>
+                <option value="1440" selected>1 天</option>
+                <option value="10080">7 天</option>
+                <option value="43200">30 天</option>
+              </select>
+            </label>
+            <label class="field"><span>可用次数</span>
+              <input id="invite-uses" type="number" min="1" max="100" value="1">
+            </label>
+          </div>
+          <div class="form-actions">
+            <button class="primary small" type="submit">创建</button>
+            <button id="invite-cancel" class="ghost small" type="button">取消</button>
+            <span id="invite-status" class="note"></span>
+          </div>
+        </form>
+        <div id="invite-warning" class="notice warn" hidden></div>
+        <div id="invite-tabs" class="seg"></div>
+        <div class="card table-card">
+          <table class="table">
+            <thead><tr><th>码</th><th>类型</th><th>用量</th><th>过期</th><th>操作</th></tr></thead>
+            <tbody id="invites"></tbody>
+          </table>
+          <div id="invites-empty" class="empty" hidden>这个分组没有邀请码</div>
+        </div>
+      </section>
+
+      <section id="view-usage" class="view" hidden>
+        <div class="metric-strip usage-metrics">
+          <div class="metric"><span>今日消息</span><strong id="usage-today-messages">—</strong><small>收发合计</small></div>
+          <div class="metric"><span>今日轮次</span><strong id="usage-today-turns">—</strong><small>DSH 回合</small></div>
+          <div class="metric"><span>今日字符入</span><strong id="usage-today-in">—</strong><small>用户消息</small></div>
+          <div class="metric"><span>今日字符出</span><strong id="usage-today-out">—</strong><small>助手消息</small></div>
+          <div class="metric"><span>7 日合计</span><strong id="usage-week-messages">—</strong><small>消息条数</small></div>
+          <div class="metric"><span>估算金额</span><strong id="usage-estimate">—</strong><small id="usage-estimate-note">按 7 日字符</small></div>
+        </div>
+
+        <div class="card usage-chart-card">
+          <div class="card-head"><h2>最近 30 天</h2><span class="muted">按消息条数</span></div>
+          <div id="usage-bars" class="usage-bars"></div>
+          <p id="usage-range" class="note"></p>
+        </div>
+
+        <div class="section-head"><h2>按会话 Top 10</h2><span class="muted">按输出字符</span></div>
+        <div class="card table-card">
+          <table class="table">
+            <thead><tr><th>会话</th><th>消息</th><th>输出字符</th></tr></thead>
+            <tbody id="usage-conversations"></tbody>
+          </table>
+          <div id="usage-empty" class="empty" hidden>这个区间还没有消息</div>
+        </div>
+
+        <div class="card form-card">
+          <div class="card-head"><h2>单价（元 / 千 token）</h2><span class="muted">可选</span></div>
+          <div class="form-grid">
+            <label class="field"><span>输入单价</span>
+              <input id="price-in" type="number" min="0" max="100000" step="0.0001">
+            </label>
+            <label class="field"><span>输出单价</span>
+              <input id="price-out" type="number" min="0" max="100000" step="0.0001">
+            </label>
+          </div>
+          <div class="form-actions">
+            <button id="price-save" class="primary small" type="button">保存单价</button>
+            <span id="price-status" class="note">未配置单价时只显示字符用量</span>
+          </div>
+          <p class="note">金额为估算，按字符折算，不是账单。估算金额 = 输入字符 / 2 / 1000 × 输入单价 + 输出字符 / 2 / 1000 × 输出单价。</p>
+        </div>
+      </section>
+
+      <section id="view-security" class="view" hidden>
+        <div class="section-head"><h2>审计日志</h2><span class="muted">最近操作</span></div>
+        <div id="audit-filters" class="seg"></div>
+        <div class="card table-card">
+          <table class="table">
+            <thead><tr><th>时间</th><th>动作</th><th>操作者</th><th>对象</th><th>结果</th></tr></thead>
+            <tbody id="audit-body"></tbody>
+          </table>
+          <div id="audit-empty" class="empty" hidden>没有匹配的审计记录</div>
+        </div>
+        <div class="pager">
+          <button id="audit-prev" class="ghost small" type="button">上一页</button>
+          <span id="audit-page" class="muted">第 1 / 1 页</span>
+          <button id="audit-next" class="ghost small" type="button">下一页</button>
+        </div>
+
+        <div class="section-head"><h2>登录历史</h2><span class="muted">最近尝试</span></div>
+        <div class="card table-card">
+          <table class="table">
+            <thead><tr><th>时间</th><th>账号</th><th>结果</th><th>IP</th></tr></thead>
+            <tbody id="login-body"></tbody>
+          </table>
+          <div id="login-empty" class="empty" hidden>没有登录记录</div>
+        </div>
+        <div class="pager">
+          <button id="login-prev" class="ghost small" type="button">上一页</button>
+          <span id="login-page" class="muted">第 1 / 1 页</span>
+          <button id="login-next" class="ghost small" type="button">下一页</button>
+        </div>
+      </section>
+
+      <section id="view-tools" class="view" hidden>
+        <div class="card table-card">
+          <table class="table">
+            <thead><tr><th>工具</th><th>说明</th><th>参数</th></tr></thead>
+            <tbody id="tools-body"></tbody>
+          </table>
+          <div id="tools-empty" class="empty" hidden>没有工具清单</div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <div id="toast" class="toast" hidden></div>
+
+  <div id="confirm-modal" class="modal" hidden>
+    <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="confirm-title">
+      <h3 id="confirm-title">确认</h3>
+      <p id="confirm-message" class="modal-text"></p>
+      <div class="modal-actions">
+        <button id="confirm-cancel" class="ghost small" type="button">取消</button>
+        <button id="confirm-ok" class="primary small danger" type="button">确定</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="session-drawer" class="drawer" hidden>
+    <div class="drawer-panel">
+      <div class="drawer-head">
+        <strong id="session-drawer-title">会话详情</strong>
+        <button data-close="session-drawer" class="ghost small" type="button">关闭</button>
+      </div>
+      <div id="session-drawer-body" class="drawer-body"></div>
+    </div>
+  </div>
+
+  <div id="device-drawer" class="drawer" hidden>
+    <div class="drawer-panel">
+      <div class="drawer-head">
+        <strong id="device-drawer-title">设备</strong>
+        <button data-close="device-drawer" class="ghost small" type="button">关闭</button>
+      </div>
+      <div id="device-drawer-body" class="drawer-body"></div>
+    </div>
+  </div>
+</body>
+</html>

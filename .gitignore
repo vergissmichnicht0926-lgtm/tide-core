@@ -1,0 +1,10 @@
+# 运行时数据，不进版本库
+data/
+*.log
+
+# 依赖
+node_modules/
+
+# Windows 杂项
+Thumbs.db
+desktop.ini
